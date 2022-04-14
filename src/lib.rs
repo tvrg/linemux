@@ -35,6 +35,7 @@
 //! presents itself.
 
 mod events;
+mod lines;
 mod reader;
 
 pub use events::MuxedEvents;

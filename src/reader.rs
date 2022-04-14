@@ -12,10 +12,10 @@ use futures_util::ready;
 use futures_util::stream::Stream;
 use pin_project_lite::pin_project;
 use tokio::fs::{metadata, File};
-use tokio::io::{AsyncBufReadExt, AsyncSeekExt, BufReader, Lines};
+use tokio::io::{AsyncSeekExt, BufReader};
 use tokio_ as tokio;
 
-type LineReader = Lines<BufReader<File>>;
+type LineReader = crate::lines::Lines<BufReader<File>>;
 
 async fn new_linereader(path: impl AsRef<Path>, seek_pos: Option<u64>) -> io::Result<LineReader> {
     let path = path.as_ref();
@@ -23,7 +23,7 @@ async fn new_linereader(path: impl AsRef<Path>, seek_pos: Option<u64>) -> io::Re
     if let Some(pos) = seek_pos {
         reader.seek(io::SeekFrom::Start(pos)).await?;
     }
-    let reader = BufReader::new(reader).lines();
+    let reader = crate::lines::lines(BufReader::new(reader));
 
     Ok(reader)
 }
