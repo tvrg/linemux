@@ -802,7 +802,7 @@ mod tests {
         // TODO: Can we still catch roll without flushing?
         let _ = timeout(Duration::from_millis(100), lines.next()).await;
 
-        _file1.write_all(b"qux").await.unwrap();
+        _file1.write_all(b"qux\n").await.unwrap();
         _file1.sync_all().await.unwrap();
         _file1.shutdown().await.unwrap();
         drop(_file1);

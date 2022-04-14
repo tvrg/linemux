@@ -70,10 +70,10 @@ where
             if me.buf.ends_with('\r') {
                 me.buf.pop();
             }
+            Poll::Ready(Ok(Some(mem::take(me.buf))))
+        } else {
+            Poll::Ready(Ok(None))
         }
-        }
-
-        Poll::Ready(Ok(Some(mem::take(me.buf))))
     }
 }
 
@@ -87,10 +87,7 @@ fn read_line<R: AsyncBufRead + ?Sized>(
     let io_res = ready!(read_until(reader, cx, b'\n', buf, read));
     let utf8_res = String::from_utf8(mem::take(buf));
 
-    // At this point both buf and output are empty. The allocation is in utf8_res.
-
     debug_assert!(buf.is_empty());
-    debug_assert!(output.is_empty());
     finish_string_read(io_res, utf8_res, *read, output)
 }
 
@@ -129,11 +126,11 @@ fn finish_string_read(
     match (io_res, utf8_res) {
         (Ok(num_bytes), Ok(string)) => {
             debug_assert_eq!(read, 0);
-            *output = string;
+            output.push_str(&string);
             Poll::Ready(Ok(num_bytes))
         }
         (Err(io_err), Ok(string)) => {
-            *output = string;
+            output.push_str(&string);
             Poll::Ready(Err(io_err))
         }
         (Ok(num_bytes), Err(utf8_err)) => {
