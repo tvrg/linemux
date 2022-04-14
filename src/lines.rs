@@ -91,7 +91,7 @@ fn read_line<R: AsyncBufRead + ?Sized>(
 
     debug_assert!(buf.is_empty());
     debug_assert!(output.is_empty());
-    finish_string_read(io_res, utf8_res, *read, output, false)
+    finish_string_read(io_res, utf8_res, *read, output)
 }
 
 fn read_until<R: AsyncBufRead + ?Sized>(
@@ -125,7 +125,6 @@ fn finish_string_read(
     utf8_res: Result<String, FromUtf8Error>,
     read: usize,
     output: &mut String,
-    truncate_on_io_error: bool,
 ) -> Poll<io::Result<usize>> {
     match (io_res, utf8_res) {
         (Ok(num_bytes), Ok(string)) => {
@@ -135,10 +134,6 @@ fn finish_string_read(
         }
         (Err(io_err), Ok(string)) => {
             *output = string;
-            if truncate_on_io_error {
-                let original_len = output.len() - read;
-                output.truncate(original_len);
-            }
             Poll::Ready(Err(io_err))
         }
         (Ok(num_bytes), Err(utf8_err)) => {
